@@ -1,0 +1,114 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.97 0.018 210);
+  --foreground: oklch(0.19 0.03 250);
+  --card: oklch(0.99 0.012 210 / 0.8);
+  --card-foreground: oklch(0.19 0.03 250);
+  --popover: oklch(0.99 0.012 210 / 0.92);
+  --popover-foreground: oklch(0.19 0.03 250);
+  --primary: oklch(0.61 0.23 250);
+  --primary-foreground: oklch(0.98 0.01 240);
+  --secondary: oklch(0.92 0.06 190);
+  --secondary-foreground: oklch(0.22 0.03 240);
+  --muted: oklch(0.95 0.025 220 / 0.72);
+  --muted-foreground: oklch(0.47 0.04 245);
+  --accent: oklch(0.83 0.13 165);
+  --accent-foreground: oklch(0.16 0.025 220);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.72 0.06 240 / 0.22);
+  --input: oklch(0.88 0.03 220 / 0.75);
+  --ring: oklch(0.73 0.17 255);
+}
+
+.dark {
+  --background: oklch(0.14 0.03 255);
+  --foreground: oklch(0.96 0.015 210);
+  --card: oklch(0.2 0.045 255 / 0.76);
+  --card-foreground: oklch(0.96 0.015 210);
+  --popover: oklch(0.19 0.05 255 / 0.92);
+  --popover-foreground: oklch(0.96 0.015 210);
+  --primary: oklch(0.79 0.19 197);
+  --primary-foreground: oklch(0.18 0.03 250);
+  --secondary: oklch(0.28 0.06 238);
+  --secondary-foreground: oklch(0.95 0.014 210);
+  --muted: oklch(0.24 0.05 250 / 0.7);
+  --muted-foreground: oklch(0.74 0.03 210);
+  --accent: oklch(0.72 0.2 155);
+  --accent-foreground: oklch(0.16 0.03 220);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.86 0.06 220 / 0.18);
+  --input: oklch(0.3 0.045 245 / 0.85);
+  --ring: oklch(0.8 0.17 190);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 0% 0%, oklch(0.86 0.19 195 / 0.35), transparent 24rem),
+    radial-gradient(circle at 100% 10%, oklch(0.74 0.23 305 / 0.28), transparent 28rem),
+    radial-gradient(circle at 50% 100%, oklch(0.78 0.18 150 / 0.22), transparent 30rem),
+    linear-gradient(135deg, color-mix(in oklch, var(--background) 92%, white), color-mix(in oklch, var(--background) 88%, var(--primary)));
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, var(--border) 65%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--border) 65%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.42), transparent 92%);
+  opacity: 0.35;
+}
+
+.prose pre {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1rem;
+}
+
+.prose code {
+  font-size: 0.875em;
+}
