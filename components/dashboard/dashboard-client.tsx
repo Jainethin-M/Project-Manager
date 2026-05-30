@@ -38,6 +38,7 @@ export function DashboardClient({ initialProjects }: DashboardClientProps) {
   }, [searchInput]);
   const [status, setStatus] = React.useState<ProjectStatus | "all">("all");
   const [provider, setProvider] = React.useState<HostingProvider | "all">("all");
+  const hasActiveFilters = Boolean(search.trim()) || status !== "all" || provider !== "all";
 
   const filteredProjects = React.useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -177,7 +178,7 @@ export function DashboardClient({ initialProjects }: DashboardClientProps) {
         </div>
       </section>
 
-      {recentProjects.length > 0 ? (
+      {!hasActiveFilters && recentProjects.length > 0 ? (
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>

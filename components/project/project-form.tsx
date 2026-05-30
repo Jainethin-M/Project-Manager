@@ -185,7 +185,7 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
     setForm((current) => ({ ...current, location: { ...current.location, [key]: value } }));
   }
 
-  function updateDevelopment(area: "backend" | "frontend" | "database", key: "port" | "url" | "storagePath", value: string) {
+  function updateDevelopment(area: "backend" | "frontend" | "database", key: "port" | "storagePath", value: string) {
     setForm((current) => ({
       ...current,
       development: {
@@ -382,7 +382,7 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
           <Card>
             <CardHeader>
               <CardTitle>Development</CardTitle>
-              <CardDescription>Local backend, frontend, and database endpoints.</CardDescription>
+              <CardDescription>Local backend, frontend, and database port and storage details.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-3">
               {(["frontend", "backend", "database"] as const).map((area) => (
@@ -390,12 +390,12 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
                   <h3 className="font-semibold capitalize">{area}</h3>
                   <Field label="Port">
                     <div className="flex items-center gap-2">
-                          <Input
-                            value={form.development[area].port}
-                            onChange={(event) => !viewOnly && updateDevelopment(area, "port", event.target.value)}
-                            onBlur={() => !viewOnly && validatePort(area, form.development[area].port)}
-                            disabled={viewOnly}
-                          />
+                      <Input
+                        value={form.development[area].port}
+                        onChange={(event) => !viewOnly && updateDevelopment(area, "port", event.target.value)}
+                        onBlur={() => !viewOnly && validatePort(area, form.development[area].port)}
+                        disabled={viewOnly}
+                      />
                       <Button size="sm" type="button" onClick={() => suggestPorts(area)} disabled={Boolean(suggestLoading[area]) || viewOnly}>
                         {suggestLoading[area] ? "Searching..." : "Suggest"}
                       </Button>
@@ -426,16 +426,8 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
                       </div>
                     ) : null}
                   </Field>
-                  <Field label="URL">
-                    <div className="flex items-center gap-2">
-                      <Input value={form.development[area].url} onChange={(event) => updateDevelopment(area, "url", event.target.value)} />
-                      <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(form.development[area].url || "")} aria-label={`Copy ${area} URL`}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </Field>
                   <Field label="Storage path">
-                    <Input value={form.development[area].storagePath} onChange={(event) => updateDevelopment(area, "storagePath", event.target.value)} />
+                    <Input value={form.development[area].storagePath} onChange={(event) => !viewOnly && updateDevelopment(area, "storagePath", event.target.value)} disabled={viewOnly} />
                   </Field>
                 </div>
               ))}
@@ -473,24 +465,6 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
                   </Field>
                 </div>
               ))}
-              <div className="md:col-span-3 grid gap-4 rounded-xl border p-4 md:grid-cols-2">
-                <Field label="Primary hosting provider">
-                  <Select value={form.metadata.hostingProvider} onValueChange={(value) => updateMetadata("hostingProvider", value as HostingProvider)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {HOSTING_PROVIDERS.map((provider) => <SelectItem key={provider} value={provider}>{provider}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field label="Primary DB provider">
-                  <Select value={form.metadata.databaseProvider} onValueChange={(value) => updateMetadata("databaseProvider", value as DatabaseProvider)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {DATABASE_PROVIDERS.map((provider) => <SelectItem key={provider} value={provider}>{provider}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

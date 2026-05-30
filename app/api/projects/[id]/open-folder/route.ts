@@ -30,22 +30,15 @@ export async function POST(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
   }
 
-  // Prefer development.backend.storagePath, then development.frontend.storagePath, then the legacy location.local
-  const backendStorage = project.development?.backend?.storagePath?.trim();
-  const frontendStorage = project.development?.frontend?.storagePath?.trim();
   const local = project.location?.local?.trim();
-
-  const candidatePaths = [backendStorage, frontendStorage, local].filter(Boolean) as string[];
-  if (candidatePaths.length === 0) {
-    return NextResponse.json({ error: "No folder path is saved for this project." }, { status: 400 });
+  if (!local) {
+    return NextResponse.json({ error: "No local project path is saved for this project." }, { status: 400 });
   }
 
-  // Use the first existing path from the preferred list
-  const folderPath = candidatePaths.find((p) => fs.existsSync(p));
-  if (!folderPath) {
-    return NextResponse.json({ error: "None of the saved folder paths exist on this machine." }, { status: 400 });
+  if (!fs.existsSync(local)) {
+    return NextResponse.json({ error: "The saved local project path does not exist on this machine." }, { status: 400 });
   }
 
-  openFolder(folderPath);
+  openFolder(local);
   return NextResponse.json({ ok: true });
 }

@@ -95,6 +95,8 @@ export type ProjectCard = {
   gitUrl: string;
   frontendUrl: string;
   liveUrl: string;
+  hostedFrontendUrl: string;
+  hostedBackendUrl: string;
   hostingProvider: HostingProvider;
   databaseProvider: DatabaseProvider;
   environmentValueCount: number;
