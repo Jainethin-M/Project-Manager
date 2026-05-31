@@ -4,9 +4,9 @@
   "private": true,
   "description": "A self-hosted developer project control center built with Next.js, MongoDB, Tailwind CSS, and shadcn/ui-style components.",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node start-with-port.js dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node start-with-port.js start",
     "lint": "eslint .",
     "seed": "tsx -r tsconfig-paths/register database/seed.ts",
     "db:reset": "tsx -r tsconfig-paths/register database/reset.ts"

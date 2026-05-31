@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Edit3, ExternalLink, Eye, FolderOpen, GitBranch, Trash2 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Edit3, ExternalLink, GitBranch, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { safeHref } from "@/lib/utils";
 import type { ProjectCard as ProjectCardType } from "@/types/project";
@@ -18,9 +18,9 @@ type ProjectCardProps = {
 
 export function ProjectCard({ project, onDeleted }: ProjectCardProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [busy, setBusy] = React.useState(false);
-  const [message, setMessage] = React.useState("");
-  const projectUrl = project.hostedFrontendUrl || project.hostedBackendUrl || project.liveUrl || project.frontendUrl;
+  const isAdminRoute = pathname.startsWith("/admin");
 
   async function deleteProject() {
     if (!window.confirm(`Delete "${project.name}" from DevVault?`)) return;
@@ -30,22 +30,13 @@ export function ProjectCard({ project, onDeleted }: ProjectCardProps) {
       if (!response.ok) throw new Error("Delete failed.");
       onDeleted?.(project.id);
       router.refresh();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Delete failed.");
+    } catch {
+      window.alert("Delete failed.");
     } finally {
       setBusy(false);
     }
   }
 
-  async function openFolder() {
-    setMessage("");
-    const response = await fetch(`/api/projects/${project.id}/open-folder`, { method: "POST" });
-    if (!response.ok) {
-      const result = (await response.json()) as { error?: string };
-      setMessage(result.error || "Unable to open folder.");
-    }
-  }
-  // console.log(project);
   return (
     <Card className="flex h-full flex-col">
       <CardHeader className="space-y-3">
@@ -63,19 +54,11 @@ export function ProjectCard({ project, onDeleted }: ProjectCardProps) {
       </CardHeader>
       
       <CardFooter className="flex flex-wrap gap-2">
-       <Button asChild size="sm" variant="ghost" aria-label="Edit project">
-          <Link href={`/projects/${project.id}/edit`}><Edit3 className="h-4 w-4" /></Link>
-        </Button>
-        {project.localPath && <Button
-          size="sm"
-          variant="ghost"
-          type="button"
-          onClick={openFolder}
-          disabled={!project.localPath}
-          aria-label="Open folder"
-        >
-          <FolderOpen className="h-4 w-4" />
-        </Button>}
+        {isAdminRoute ? (
+          <Button asChild size="sm" variant="ghost" aria-label="Edit project">
+            <Link href={`/admin/projects/${project.id}/edit`}><Edit3 className="h-4 w-4" /></Link>
+          </Button>
+        ) : null}
         {project.gitUrl ? (
           <Button asChild size="sm" variant="ghost" aria-label="Open Git repository">
             <a href={safeHref(project.gitUrl)} target="_blank" rel="noreferrer"><GitBranch className="h-4 w-4" /></a>
@@ -86,9 +69,11 @@ export function ProjectCard({ project, onDeleted }: ProjectCardProps) {
             <a href={safeHref(project.liveUrl)} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /></a>
           </Button>
         ) : null}
-        <Button size="sm" variant="ghost" type="button" onClick={deleteProject} disabled={busy} aria-label="Delete project">
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {isAdminRoute ? (
+          <Button size="sm" variant="ghost" type="button" onClick={deleteProject} disabled={busy} aria-label="Delete project">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        ) : null}
       </CardFooter>
     </Card>
   );

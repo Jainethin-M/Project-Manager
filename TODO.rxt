@@ -1,2 +1,5 @@
-3. deploy
-4. implement user level oauth
+0. Set the port to 40020
+
+1. navigate into /admin to edit and view encrypted values. use the password from .env
+2. Encrypt and decrypt 
+3. Deployment app cannot open our local machine path. So remove that.

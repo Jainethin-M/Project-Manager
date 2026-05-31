@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Download, Plus, Vault } from "lucide-react";
+import { Download, Shield, Vault } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImportBackupButton } from "@/components/import-backup-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -23,9 +22,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <div className="flex flex-wrap items-center gap-2">
             <Button asChild size="sm">
-              <Link href="/projects/new">
-                <Plus className="h-4 w-4" />
-                New Project
+              <Link href="/admin">
+                <Shield className="h-4 w-4" />
+                Admin
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
@@ -34,7 +33,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 Export
               </a>
             </Button>
-            <ImportBackupButton />
             <ThemeToggle />
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasAdminSession } from "@/lib/admin-auth";
 import { updateProjectFavorite } from "@/services/project-service";
 
 export const runtime = "nodejs";
@@ -8,6 +9,9 @@ type RouteContext = {
 };
 
 export async function POST(request: Request, context: RouteContext) {
+  if (!(await hasAdminSession())) {
+    return NextResponse.json({ error: "Admin authentication required." }, { status: 401 });
+  }
   try {
     const { id } = await context.params;
     const body = (await request.json()) as { favorite?: boolean };

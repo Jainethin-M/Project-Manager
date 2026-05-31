@@ -121,6 +121,8 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
   const isEditing = Boolean(project?.id);
   const [nameWarning, setNameWarning] = React.useState("");
   const [portStatus, setPortStatus] = React.useState<Record<string, string>>({});
+  const [revealedValues, setRevealedValues] = React.useState<Record<string, string>>({});
+  const [busyEnvId, setBusyEnvId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setStackInput(joinList(form.stack));
@@ -303,6 +305,31 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
     }
   }
 
+  async function revealValue(envId?: string) {
+    if (!project?.id || !envId) return;
+    const password = window.prompt("Enter the password from your .env file to reveal this value.");
+    if (!password) return;
+
+    setBusyEnvId(envId);
+    setError("");
+    try {
+      const response = await fetch(`/api/projects/${project.id}/environment/${envId}/reveal`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const result = (await response.json()) as { value?: string; error?: string };
+      if (!response.ok) {
+        throw new Error(result.error || "Unable to reveal value.");
+      }
+      setRevealedValues((current) => ({ ...current, [envId]: result.value || "" }));
+    } catch (revealError) {
+      setError(revealError instanceof Error ? revealError.message : "Unable to reveal value.");
+    } finally {
+      setBusyEnvId(null);
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -311,7 +338,7 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{isEditing ? `Edit ${project?.name}` : "New project"}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{isEditing ? `${viewOnly ? '' : 'Edit'} ${project?.name}` : "New project"}</h1>
         </div>
         {!viewOnly ? (
           <Button type="submit" disabled={saving}>
@@ -446,7 +473,7 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
                 <div key={area} className="space-y-4 rounded-xl border p-4">
                   <h3 className="font-semibold capitalize">{area}</h3>
                   <Field label="Provider">
-                    <Select value={form.hosted[area].provider} onValueChange={(value) => updateHosted(area, "provider", value)}>
+                <Select value={form.hosted[area].provider} onValueChange={(value) => !viewOnly && updateHosted(area, "provider", value)} disabled={viewOnly}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {(area === "database" ? DATABASE_PROVIDERS : HOSTING_PROVIDERS).map((provider) => (
@@ -457,8 +484,8 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
                   </Field>
                   <Field label="URL">
                     <div className="flex items-center gap-2">
-                      <Input value={form.hosted[area].url} onChange={(event) => updateHosted(area, "url", event.target.value)} />
-                      <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(form.hosted[area].url || "")} aria-label={`Copy hosted ${area} URL`}>
+                      <Input value={form.hosted[area].url} onChange={(event) => !viewOnly && updateHosted(area, "url", event.target.value)} disabled={viewOnly} />
+                      <Button type="button" size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(form.hosted[area].url || "")} aria-label={`Copy hosted ${area} URL`}>
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
@@ -510,17 +537,22 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
                   <Field label="Value">
                     <div className="flex items-center gap-2">
                       <Input
-                        value={item.value}
+                        value={viewOnly && item.id && item.encrypted ? (revealedValues[item.id] ?? item.value) : item.value}
                         placeholder={item.encrypted && (item.encryptedValue || item.hashedValue) ? "Already encrypted. Enter a new value to rotate it." : ""}
                         onChange={(event) => !viewOnly && updateEnvironmentValue(index, { value: event.target.value })}
                         disabled={viewOnly}
                       />
-                      <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(item.value || "")} aria-label={`Copy value ${index}`}>
+                      <Button type="button" size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText((item.id && revealedValues[item.id]) || item.value || "")} aria-label={`Copy value ${index}`}>
                         <Copy className="h-4 w-4" />
                       </Button>
+                      {viewOnly && item.encrypted && item.id ? (
+                        <Button type="button" size="sm" variant="outline" onClick={() => revealValue(item.id)} disabled={busyEnvId === item.id}>
+                          {busyEnvId === item.id ? "Checking..." : "Decrypt"}
+                        </Button>
+                      ) : null}
                     </div>
                   </Field>
-                    <label className="flex items-center gap-3 rounded-lg border p-3 text-sm">
+                  <label className="flex items-center gap-3 rounded-lg border p-3 text-sm">
                     <input
                       type="checkbox"
                       className="h-4 w-4 accent-current"
@@ -559,7 +591,7 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
               {form.commands.map((item, index) => (
                 <div key={index} className="grid gap-4 rounded-xl border p-4 md:grid-cols-3">
                   <Field label="Type">
-                    <Select value={item.type} onValueChange={(value) => updateCommand(index, { type: value as CommandType })}>
+                    <Select value={item.type} onValueChange={(value) => !viewOnly && updateCommand(index, { type: value as CommandType })} disabled={viewOnly}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {COMMAND_TYPES.map((type) => <SelectItem key={type} value={type}>{type}</SelectItem>)}
@@ -567,10 +599,10 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
                     </Select>
                   </Field>
                   <Field label="Title">
-                    <Input value={item.title} onChange={(event) => updateCommand(index, { title: event.target.value })} />
+                    <Input value={item.title} onChange={(event) => !viewOnly && updateCommand(index, { title: event.target.value })} disabled={viewOnly} />
                   </Field>
                   <Field label="Command">
-                    <Input value={item.command} onChange={(event) => updateCommand(index, { command: event.target.value })} />
+                    <Input value={item.command} onChange={(event) => !viewOnly && updateCommand(index, { command: event.target.value })} disabled={viewOnly} />
                   </Field>
                   <div className="md:col-span-3">
                     <Button type="button" variant="destructive" size="sm" onClick={() => !viewOnly && removeArrayItem("commands", index)} disabled={viewOnly}>
@@ -601,13 +633,14 @@ export function ProjectForm({ project, viewOnly = false }: { project?: Project |
               {form.highlights.map((item, index) => (
                 <div key={index} className="grid gap-4 rounded-xl border p-4">
                   <Field label="Notes">
-                    <Textarea value={item.notes} onChange={(event) => updateHighlight(index, { notes: event.target.value })} />
+                    <Textarea value={item.notes} onChange={(event) => !viewOnly && updateHighlight(index, { notes: event.target.value })} disabled={viewOnly} />
                   </Field>
                   <Field label="Links">
                     <Input
                       value={joinList(item.links)}
-                      onChange={(event) => updateHighlight(index, { links: splitList(event.target.value) })}
+                      onChange={(event) => !viewOnly && updateHighlight(index, { links: splitList(event.target.value) })}
                       placeholder="https://example.com, https://docs.example.com"
+                      disabled={viewOnly}
                     />
                   </Field>
                   <Button type="button" variant="destructive" size="sm" className="w-fit" onClick={() => !viewOnly && removeArrayItem("highlights", index)} disabled={viewOnly}>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasAdminSession } from "@/lib/admin-auth";
 import { deleteProject, getProjectById, updateProject } from "@/services/project-service";
 
 export const runtime = "nodejs";
@@ -18,6 +19,9 @@ export async function GET(_request: Request, context: RouteContext) {
 
 export async function PUT(request: Request, context: RouteContext) {
   try {
+    if (!(await hasAdminSession())) {
+      return NextResponse.json({ error: "Admin authentication required." }, { status: 401 });
+    }
     const { id } = await context.params;
     const payload = (await request.json()) as unknown;
     const project = await updateProject(id, payload);
@@ -31,6 +35,9 @@ export async function PUT(request: Request, context: RouteContext) {
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
+  if (!(await hasAdminSession())) {
+    return NextResponse.json({ error: "Admin authentication required." }, { status: 401 });
+  }
   const { id } = await context.params;
   const deleted = await deleteProject(id);
   if (!deleted) {

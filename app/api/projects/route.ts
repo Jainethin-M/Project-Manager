@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasAdminSession } from "@/lib/admin-auth";
 import { createProject, listProjectCards } from "@/services/project-service";
 
 export const runtime = "nodejs";
@@ -9,6 +10,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    if (!(await hasAdminSession())) {
+      return NextResponse.json({ error: "Admin authentication required." }, { status: 401 });
+    }
     const payload = (await request.json()) as unknown;
     const project = await createProject(payload);
     return NextResponse.json({ project }, { status: 201 });

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Shield } from "lucide-react";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
 import { Button } from "@/components/ui/button";
 import { listProjectCards } from "@/services/project-service";
@@ -21,9 +21,9 @@ export default async function DashboardPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/projects/new">
-            <Plus className="h-4 w-4" />
-            Project
+          <Link href="/admin">
+            <Shield className="h-4 w-4" />
+            Admin
           </Link>
         </Button>
       </section>
